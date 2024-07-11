@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html 
+	xmlns:th="http://www.thymeleaf.org" 
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/defaultLayout}"><!-- 이 페이지를 껴넣을 주소(경로) -->
+
+<section layout:fragment="content" class="contents">
+	<!-- 유동적으로 바뀌는 부분 -->
+	<div class="sign-up-box">
+		<h1>회원가입</h1>
+	</div>
+</section>
+
+<th:block layout:fragment="script">
+
+</th:block>
+
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html 
+	lang="ko"
+	xmlns:th="http://www.thymeleaf.org" 
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+	<!-- head config -->
+	<th:block th:replace="fragments/config :: configFragment"></th:block>
+<body>
+    <div id="wrap">
+    	<!-- ●header 영역 -->
+    	<header th:replace="fragments/header :: headerFragment"></header><!-- 조각을 껴넣는 용도일뿐 실제는 header 파일이 보임-->
+    	
+    	<!-- ●content 영역 -->
+    	<section layout:fragment="content" class="contents"></section> <!-- content 라는 이름을 가진 조각들만이 이 영역에 껴넣을 자격이 주어짐 -->
+    	
+    	<!-- ●script 영역: content 조각 안에 있음(회원가입,로그인 등 바뀌는 부분) -->
+    	<th:block layout:fragment="script"></th:block>
+    	
+    	<!-- ●footer 영역 -->
+    	<footer th:replace="fragments/footer :: footerFragment"></footer>
+    </div>
+</body>
+</html>
