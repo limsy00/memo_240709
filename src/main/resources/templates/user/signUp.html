@@ -4,15 +4,170 @@
 	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	layout:decorate="~{layout/defaultLayout}"><!-- 이 페이지를 껴넣을 주소(경로) -->
 
-<section layout:fragment="content" class="contents">
-	<!-- 유동적으로 바뀌는 부분 -->
+<section layout:fragment="content" class="contents d-flex justify-content-center align-items-center">
+	<!-- ●회원가입 문구까지 포함한 div 상자 : 유동적으로 바뀌는 부분 -->
 	<div class="sign-up-box">
-		<h1>회원가입</h1>
+		<h1 class="mb-4">회원가입</h1>
+		<form id="signUpForm" method="post" action="/user/sign-up">
+		
+			<table class="sign-up-table table table-bordered">
+				<tr>
+					<th>* 아이디(4자 이상)<br></th>
+					<td>
+						<!-- 인풋박스 옆에 중복확인을 붙이기 위해 div를 하나 더 만들고 d-flex -->
+						<div class="d-flex">
+							<input type="text" id="loginId" name="loginId" class="form-control col-9" placeholder="아이디를 입력하세요.">
+							<button type="button" id="loginIdCheckBtn" class="btn btn-success">중복확인</button><br>
+						</div>
+						
+						<!-- ●아이디 체크 결과 -->
+						<!-- d-none 클래스: display none (보이지 않게) -->
+						<div id="idCheckLength" class="small text-danger d-none">ID를 4자 이상 입력해주세요.</div>
+						<div id="idCheckDuplicated" class="small text-danger d-none">이미 사용중인 ID입니다.</div>
+						<div id="idCheckOk" class="small text-success d-none">사용 가능한 ID 입니다.</div>
+					</td>
+				</tr>
+				<tr>
+					<th>* 비밀번호</th>
+					<td><input type="password" id="password" name="password" class="form-control" placeholder="비밀번호를 입력하세요."></td>
+				</tr>
+				<tr>
+					<th>* 비밀번호 확인</th>
+					<td><input type="password" id="confirmPassword" class="form-control" placeholder="비밀번호를 입력하세요."></td>
+				</tr>
+				<tr>
+					<th>* 이름</th>
+					<td><input type="text" id="name" name="name" class="form-control" placeholder="이름을 입력하세요."></td>
+				</tr>
+				<tr>
+					<th>* 이메일</th>
+					<td><input type="text" id="email" name="email" class="form-control" placeholder="이메일 주소를 입력하세요."></td>
+				</tr>
+			</table>
+			
+			<br>
+		
+			<button type="submit" id="signUpBtn" class="btn btn-primary float-right">회원가입</button>
+		</form>
 	</div>
 </section>
 
 <th:block layout:fragment="script">
-
+	<script>
+		$(document).ready(function() {
+			// ●중복확인
+			$("#loginIdCheckBtn").on('click', function() { // (1)
+				// alert("중복확인");
+				
+				// (4) 문구 안 보이게 초기화
+				$("#idCheckLength").addClass("d-none");
+				$("#idCheckDuplicated").addClass("d-none");
+				$("#idCheckOk").addClass("d-none");
+				
+				let loginId = $("#loginId").val().trim(); // (2)
+				//alert(loginId);
+				
+				if (loginId.length < 4) { // (3)
+					$("#idCheckLength").removeClass("d-none");
+					return;
+				}
+				
+				// (5) AJAX 호출1 
+				$.ajax({
+					// request
+					url:"/user/is-duplicated-id"
+					, data:{"loginId":loginId}
+					
+					// response
+					, success:function(data) {
+						if (data.is_duplicated_id) { // 중복
+							$("#idCheckDuplicated").removeClass("d-none");
+						} else { // 사용 가능
+							$("#idCheckOk").removeClass("d-none");
+						}
+					}
+					, error:function(error) {
+						alert("중복확인에 실패했습니다.");
+					}
+				});//-AJAX
+			});//-------중복확인
+			
+			
+			// ●회원 가입
+			$("#signUpForm").on('submit', function(e) {
+				//alert("회원가입");
+				
+				// (1)
+				e.preventDefault(); // 서브밋 기능 중단 : 회원가입 버튼 눌러도 페이지 이동하지 않음 -> 확인 후 alert 막기
+				
+				// (2) validation
+				let loginId = $("#loginId").val().trim();
+				let password = $("#password").val();
+				let confirmPassword = $("#confirmPassword").val();
+				let name = $("#name").val().trim();
+				let email = $("#email").val().trim();
+				
+				if (!loginId) {
+					alert("아이디를 입력하세요.");
+					return false; // 서브밋 이벤트는 false 필수 추가★★
+				}
+				
+				if (!password || !confirmPassword) {
+					alert("비밀번호를 입력하세요.");
+					return false;
+				}
+				
+				// 비밀번호, 비밀번호 확인이 일치하지 않을 때
+				if (password != confirmPassword) {
+					alert("비밀번호가 일치하지 않습니다.");
+					return false;
+				}
+				
+				if (!name) {
+					alert("이름을 입력하세요.");
+					return false;
+				}
+				
+				if (!email) {
+					alert("이메을 입력하세요.");
+					return false;
+				}
+				
+				// loginId 중복확인 후, 사용 가능한 아이디일 경우에만 회원가입 가능
+				// #idCheckOk d-none이 있을 때 alert 띄움
+				if ($("#idCheckOk").hasClass("d-none")) {
+					alert("아이디 중복확인을 해주세요.");
+					return false;
+				}
+				
+				// (3) 서버 전송
+				// 1) 서브밋 기능(화면 이동) 중단된 상태에서 서브밋 호출 -> response가 화면(HTML)
+				//$(this)[0].submit(); // 화면 이동
+				
+				// 2) AJAX 호출2 : AJAX 강의자료 참고하기!! -> response가 JSON
+				let url = $(this).attr("action"); // <form> action 속성의 값 뽑아내기
+				console.log(url); // /user/sign-up
+				let params = $(this).serialize(); // .serialize() : <form>에 있는 name 속성과 value를 파라미터로 구성하는 함수
+				console.log(params); // loginId=___&password=___& ...  
+				
+				// request
+				$.post(url, params)
+				// response (성공)
+				.done(function(data) { 
+					if (data.code == 200) { // 회원가입이 완료되면 어디로 갈지? 너가 로그인 다시해, 자동 로그인 처리 해주거나 등등
+						alert("가입을 환영합니다. 로그인 해주세요.");
+					
+						// (4) 로그인 화면으로 이동
+						location.href = "/user/sign-in-view";
+						
+					} else {
+						alert(data.error_message);
+					}
+				});
+				
+			});//--------회원가입
+		}); //-ready
+	</script>
 </th:block>
 
 </html>
