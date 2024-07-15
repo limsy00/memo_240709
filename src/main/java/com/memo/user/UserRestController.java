@@ -13,6 +13,9 @@ import com.memo.common.EncryptUtils;
 import com.memo.user.bo.UserBO;
 import com.memo.user.entity.UserEntity;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
 @RestController
 @RequestMapping("/user")
 public class UserRestController { // API들만 모아논 class
@@ -45,6 +48,14 @@ public class UserRestController { // API들만 모아논 class
 		return result;
 	}
 	
+	/** (/ + ** + enter)
+	 * 회원가입 API
+	 * @param loginId
+	 * @param password
+	 * @param name
+	 * @param email
+	 * @return
+	 */
 	@PostMapping("/sign-up")
 	public Map<String, Object> signUp(
 			@RequestParam("loginId") String loginId,
@@ -76,4 +87,56 @@ public class UserRestController { // API들만 모아논 class
 		return result;
 	}
 	
+	/**
+	 * 로그인 API
+	 * @param loginId
+	 * @param password
+	 * @param request
+	 * @return
+	 */
+	@PostMapping("/sign-in")
+	public Map<String, Object> signIn(
+		@RequestParam("loginId") String loginId,
+		@RequestParam("password") String password,
+		HttpServletRequest request) {
+			
+			// (2) password hashing > 해싱된 결과물이 나한테 돌아옴 (원본 비번을 파라미터로 받음)			
+			String haschedPassword = EncryptUtils.md5(password); // breakpoint 걸고 확인
+			
+			// (3) db 조회 - loginId, 해싱된 비밀번호 => UserEntity
+			UserEntity user = userBO.getUserEntityByLoginIdPassword(loginId, haschedPassword); // -> (1) + (4)
+			
+			/*
+			 * // (4) 로그인 처리 if (user != null) { // 성공
+			 * 
+			 * } else { // 실패
+			 * 
+			 * }
+			 * 
+			 * // (1) 응답값 
+			 * Map<String, Object> result = new HashMap<>(); 
+			 * result.put("code", 200); 
+			 * result.put("result", "성공"); 
+			 * return result;
+			 */
+			
+			// (1) + (4) 로그인 처리 및 응답값
+			Map<String, Object> result = new HashMap<>(); // haschedPassword에 breakpoint 걸고 확인
+			if (user != null) { // 성공
+				// (5) 세션에 사용자 정보 담기 (사용자 각각 마다) -- session input
+				HttpSession session = request.getSession(); // 비어있는 주머니 001
+				session.setAttribute("userId", user.getId()); // 내가 지은 변수 이름(userId, userLoginId...)에 사용자 정보(user.getId(), user.getLoginId()..) 담기
+				session.setAttribute("userLoginId", user.getLoginId());
+				session.setAttribute("userName", user.getName()); 
+				
+				result.put("code", 200);
+				result.put("result", "성공");
+			} else { // 실패
+				result.put("code", "403");
+				result.put("error_message", "존재하지 않는 사용자 입니다.");
+			}
+			return result;
+	}
 }
+	
+

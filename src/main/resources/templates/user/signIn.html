@@ -31,6 +31,43 @@
 
 <th:block layout:fragment="script">
     <script>
-
+		$(document).ready(function() {
+			// ●로그인
+			$("form").on('submit', function(e) {
+				e.preventDefault(); // (1) form 기능(=서브밋) 중단 -> 안하면 404로 넘어감 -> 서브밋 중단 확인후 alert 주석
+				//alert("로그인");
+				
+				// (2)
+				let loginId = $("input[name=loginId]").val().trim();
+				let password = $("input[name=password]").val(); // space바가 보이기때문에 여백제거 굳이x
+				
+				if (!loginId) {
+					alert("아이디를 입력하세요.");
+					return false;
+				}
+				if (!password) {
+					alert("비밀번호를 입력하세요.");
+					return false;
+				}
+				
+				// (3) ajax 요청 전 확인
+				let url = $(this).attr('action');
+				console.log(url); // /user/sign-in
+				let params = $(this).serialize(); // name 속성 '반드시' 있어야함
+				console.log(params); // loginId=tjdud00&password=aaaa				
+				
+				// (4) ajax
+				$.post(url, params) // request
+				.done(function(data) { // response
+					if (data.result == "성공") { // [글 목록] 화면으로 이동
+						location.href = "/post/post-list-view";
+						
+					} else {
+						alert(data.error_message);
+					}
+					
+				}); //--ajax
+			}) //--로그인
+		}); //--ready
     </script>
 </th:block>

@@ -7,5 +7,6 @@ import com.memo.user.entity.UserEntity;
 public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
 	// JPQL
-	public UserEntity findByLoginId(String loginId);
+	public UserEntity findByLoginId(String loginId); // singUp
+	public UserEntity findByLoginIdAndPassword(String loginId, String password); // singIn 
 }

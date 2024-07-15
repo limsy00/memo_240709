@@ -6,9 +6,13 @@
 			<div>
 				<h1>MEMO 게시판</h1>
 			</div>
-			<!-- 로그인 영역 -->
-			<div>
-				<a href="#">로그인</a>
+			<!-- 로그인 영역 (※화면에 안뿌려질 경우 session input 확인해보기) -->
+			<div th:if="${session.userId != null}"> <!-- userId가 null이 아닐때 -->
+				<span th:text="${session.userName} + ' 님 안녕하세요.'"></span>
+				<a href="/user/sign-out">로그아웃</a>
+			</div>
+			<div th:unless="${session.userId != null}"> <!-- userId가 null일때 -->
+				<a href="/user/sign-in-view">로그인</a>
 			</div>
 			
 		</div>
