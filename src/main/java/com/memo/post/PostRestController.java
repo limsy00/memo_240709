@@ -26,11 +26,12 @@ public class PostRestController {
 			@RequestParam(value = "file", required = false) MultipartFile file,
 			HttpSession session) { // 파라미터 user 때문에 session 받아야함 
 		
-		// (2) 글쓴이 번호를 session에서 꺼내기 -> db insert 위함
+		// (2) 글쓴이 번호를 session에서(bo 모르게) 꺼내기 -> db insert 위함
 		int userId = (int)session.getAttribute("userId"); // 로그인 풀릴 경우 에러, 로그인 확인 여부와는 다르게 다운캐스팅 -> breakpoint
-				
+		String userLoginId = (String)session.getAttribute("userLoginId");
+		
 		// (3) db insert
-		postBO.addPost(userId, subject, content, file);
+		postBO.addPost(userId, userLoginId, subject, content, file);
 		
 		
 		// (1)응답값

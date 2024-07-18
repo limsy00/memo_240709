@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html 
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/defaultLayout}">
+<section layout:fragment="content" class="contents d-flex justify-content-center">
+	<div class="w-50 m-5">
+		<h1>글 상세</h1>
+		[[${post}]]
+		<input type="text" id="subject" th:value="${post.subject}" class="form-control" placeholder="제목을 입력하세요.">
+		<textarea rows="10" id="content" class="form-control" placeholder="내용을 입력하세요." th:text="${post.content}"></textarea>
+		
+		<!-- 이미지 있을 때에만 영역 노출 -->
+		<div class="my-3" th:if="${post.imagePath != null}">
+			<!--<img alt="본문 이미지" src="https://cdn.pixabay.com/photo/2016/01/11/04/08/moon-1133025_640.jpg" width="300">-->
+			<img th:src="${post.imagePath}" alt="본문 이미지" width="300">
+		</div>
+		
+		<div class="d-flex justify-content-end my-3">
+			<input type="file" id="file" accept=".jpg, .png, gif"> <!-- ▶이미지 덩어리 그대로 가져옴(파일 선택) -->
+		</div>
+		<div class="d-flex justify-content-between">
+				<button type="button" id="deleteBtn" class="btn btn-secondary">삭제</button>
+			<div>
+				<a href="/post/post-list-view" type="button" class="btn btn-dark">목록</a>
+				<button type="button" id="saveBtn" class="btn btn-warning">수정</button>
+			</div>
+		</div>
+	</div>
+</section>
+
+<th:block layout:fragment="script">
+    <script>
+
+    </script>
+</th:block>

@@ -4,13 +4,13 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/defaultLayout}">
 <section layout:fragment="content" class="contents d-flex justify-content-center">
-	<div class="w-50">
+	<div class="w-50 m-5">
 		<h1>글쓰기</h1>
 		<input type="text" id="subject" class="form-control" placeholder="제목을 입력하세요.">
 		<textarea rows="10" id="content" class="form-control" placeholder="내용을 입력하세요."></textarea>
 		
 		<div class="d-flex justify-content-end my-3"><!-- #오른쪽 정렬 -->
-			<input type="file" id="file"> <!-- ▶이미지 덩어리 그대로 가져옴(파일 선택) -->
+			<input type="file" id="file" accept=".jpg, .png, gif"> <!-- ▶이미지 덩어리 그대로 가져옴(파일 선택) -->
 		</div>
 		<div class="d-flex justify-content-between"><!-- #수평 기준 양쪽 끝에 정렬 -->
 			<button type="button" id="postListBtn" class="btn btn-dark">목록</button> <!-- 개인 프로젝트시 a 태그 사용!! -->
@@ -44,6 +44,8 @@
 			// 필수요소 validation
 			let subject = $("#subject").val().trim();
 			let content = $("#content").val();
+			let fileName = $("#file").val(); // console로 확인해보면 파일 경로(String)가 나온다. -> 진짜 파일X
+
 			
 			if (!subject) {
 				alert("제목을 입력하세요.");
@@ -53,14 +55,32 @@
 				alert("내용을 입력하세요.");
 				return;
 			}
+			
+			// 파일명이 비워져 있지 않으면 => 확장자 체크
+			if (fileName) {
+				//alert("파일이 있다.");
+				// C:\fakepath\flower-8557060_640.jpg
+				let extension = fileName.split(".").pop().toLowerCase(); // 제일 마지막에 쌓아져 있는 것, 소문자로 변경해서 가져오겠다.
+				console.log(extension);
+				
+				if ($.inArray(extension, ["jpg", "gif", "png"]) == -1) { // extension 값이 뒤에 있는 배열에 들어가 있는가? (-1:NO)
+					alert("이미지 파일만 업로드 할 수 있습니다.");
+					$("#file").val(""); // 파일을 비운다.
+					return;
+				}
+			}
+			
 			console.log(subject); // validation 확인
 			console.log(content); 
+			 
 			
 			// ★ 이미지는 form 태그로 반드시 감싸서 업로드!
 			// 마크업 안했을 때, 임의로 자바스크립트에서 form 태그를 만든다 : key는 name과 같고 리퀘스트 파라미터명
 			let formData = new FormData(); // <form></form> 역할
 			formData.append("subject", subject); // from 태그 안에 자식 생성(ex <input>)
 			formData.append("content", content);
+			
+			formData.append("file", $("#file")[0].files[0]); // 0번째 파일 1개만 업로드 -> 여러개 올리는 방법 따로 찾아보기
 			
 			// AJAX
 				$.ajax({

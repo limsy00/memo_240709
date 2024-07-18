@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.memo.post.bo.PostBO;
 import com.memo.post.domain.Post;
@@ -44,5 +45,27 @@ public class PostController {
 	@GetMapping("/post-create-view")
 	public String postCreateView() {
 		return "post/postCreate";
+	}
+	
+	/**
+	 * 글 상세 화면 
+	 * @param postId
+	 * @param model
+	 * @param session
+	 * @return
+	 */
+	@GetMapping("/post-detail-view")
+	public String postDetailView( // 로그인이 풀릴 경우 접근 할 수 없음
+			@RequestParam("postId") int postId, Model model, HttpSession session) {
+		
+		// db select - userId(로그인된 사람의 글 맞는지 확인),postId
+		int userId = (int)session.getAttribute("userId"); // 로그인된 상태라고 생각하기 때문에 다운캐스팅 ,breakpoint
+		Post post = postBO.getPostByPostIdUserId(userId, postId);
+		
+		// model
+		model.addAttribute("post", post);
+		
+		// 화면 이동
+		return "post/postDetail";
 	}
 }
