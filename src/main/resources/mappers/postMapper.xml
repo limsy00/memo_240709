@@ -63,6 +63,28 @@
 			`userId` = #{userId}
 			AND `id` = #{postId} <!-- db 안에 postId는 id를 의미 -->
 	</select>
+	
+
+	<update id="updatePostByPostId" parameterType="map">
+		UPDATE `post`
+		SET
+			`subject` = #{subject}
+			, `content` = #{content}
+			<if test="imagePath != null">
+			, `imagePath` = #{imagePath}
+			</if>
+			, `updatedAt` = NOW()
+		WHERE
+			`id` = #{postId} <!-- db 확인해보면 `post`의 PK 는 id -->
+	</update>
+	
+	<delete id="deletePostByPostId" parameterType="int">
+	 	DELETE
+	 	FROM
+	 		`post`
+	 	WHERE
+	 		`id` = #{postId}
+	</delete>
 </mapper>
 
 

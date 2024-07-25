@@ -6,7 +6,6 @@
 <section layout:fragment="content" class="contents d-flex justify-content-center">
 	<div class="w-50 m-5">
 		<h1>글 상세</h1>
-		[[${post}]]
 		<input type="text" id="subject" th:value="${post.subject}" class="form-control" placeholder="제목을 입력하세요.">
 		<textarea rows="10" id="content" class="form-control" placeholder="내용을 입력하세요." th:text="${post.content}"></textarea>
 		
@@ -20,10 +19,10 @@
 			<input type="file" id="file" accept=".jpg, .png, gif"> <!-- ▶이미지 덩어리 그대로 가져옴(파일 선택) -->
 		</div>
 		<div class="d-flex justify-content-between">
-				<button type="button" id="deleteBtn" class="btn btn-secondary">삭제</button>
+				<button type="button" id="deleteBtn" class="btn btn-secondary" th:data-post-id="${post.id}">삭제</button>
 			<div>
 				<a href="/post/post-list-view" type="button" class="btn btn-dark">목록</a>
-				<button type="button" id="saveBtn" class="btn btn-warning">수정</button>
+				<button type="button" id="saveBtn" class="btn btn-warning" th:data-post-id="${post.id}">수정</button> <!-- postcontroller 에서 모델에 담아둔거 꺼내 쓰기 : model.addAttribute("post", post); -->
 			</div>
 		</div>
 	</div>
@@ -31,6 +30,118 @@
 
 <th:block layout:fragment="script">
     <script>
+    $(document).ready(function() {
+		// ●목록 버튼 -> 화면 이동 : 개인 프로젝트에선 a 태그 사용(이부분 생략 가능) 
+		$("#postListBtn").on('click', function() {
+			location.href = "/post/post-list-view";
+		});//--목록 버튼 
+		
+		// ●모두 지우기
+		$("#clearBtn").on('click', function() {
+			//alert("모두 지우기");
+			$("#subject").val(""); // 내용 초기화(or "값 세팅")
+			$("#content").val(""); // 내용 초기화
+		}); //--모두 지우기 버튼
+		
+		// ●글쓰기 저장
+		$("#saveBtn").on('click', function() {
+			//alert("저장");
+			
+			// 필수요소 validation
+			let postId = $(this).data("post-id"); // 추가
+			
+			let subject = $("#subject").val().trim();
+			let content = $("#content").val();
+			let fileName = $("#file").val(); // console로 확인해보면 파일 경로(String)가 나온다. -> 진짜 파일X
 
+			
+			if (!subject) {
+				alert("제목을 입력하세요.");
+				return;
+			}
+			if (!content) {
+				alert("내용을 입력하세요.");
+				return;
+			}
+			
+			// 파일명이 비워져 있지 않으면 => 확장자 체크
+			if (fileName) {
+				//alert("파일이 있다.");
+				// C:\fakepath\flower-8557060_640.jpg
+				let extension = fileName.split(".").pop().toLowerCase(); // 제일 마지막에 쌓아져 있는 것, 소문자로 변경해서 가져오겠다.
+				console.log(extension);
+				
+				if ($.inArray(extension, ["jpg", "gif", "png"]) == -1) { // extension 값이 뒤에 있는 배열에 들어가 있는가? (-1:NO)
+					alert("이미지 파일만 업로드 할 수 있습니다.");
+					$("#file").val(""); // 파일을 비운다.
+					return;
+				}
+			}
+			
+			console.log(subject); // validation 확인
+			console.log(content); 
+			 
+			
+			// ★ 이미지는 form 태그로 반드시 감싸서 업로드!
+			// 마크업 안했을 때, 임의로 자바스크립트에서 form 태그를 만든다 : key는 name과 같고 리퀘스트 파라미터명
+			let formData = new FormData(); // <form></form> 역할
+			
+			formData.append("postId", postId); // 추가
+			
+			formData.append("subject", subject); // from 태그 안에 자식 생성(ex <input>)
+			formData.append("content", content);
+			
+			formData.append("file", $("#file")[0].files[0]);
+			
+			// AJAX
+				$.ajax({
+					// request
+					type:"put" // 405: 요청 타입 에러
+					, url:"/post/update"
+					, data:formData
+					, enctype:"multipart/form-data" // 파일업로드 필수 설정
+					, processData:false // 파일업로드 필수 설정
+					, contentType:false // 파일업로드 필수 설정
+					
+					// response
+					, success:function(data) {
+						if (data.code == 200) {
+							alert("메모가 수정되었습니다.");
+							location.href = "/post/post-list-view";
+						} else {
+							alert(data.error_message);
+						}
+					}
+					, error:function(e) {
+						alert("메모를 수정하는데 실패했습니다.");
+					}
+				});//--ajax
+			
+		}); //--모두 지우기 버튼
+		
+		// ●글 삭제
+		$("#deleteBtn").on('click', function() {
+			let postId = $(this).data("post-id");
+			//alert(postId);
+			
+			$.ajax({
+				type:"delete"
+				, url:"/post/delete"
+				, data:{"postId":postId}
+				, success:function(data) {
+					if (data.code == 200) {
+						alert("메모가 삭제되었습니다.");
+						location.href = "/post/post-list-view";
+					} else {
+						alert(data.error_message);
+					}
+				}
+				, error:function(e) {
+					alert("메모를 삭제하는데 실패했습니다.");
+				}
+			});
+		});
+		
+	});
     </script>
 </th:block>
