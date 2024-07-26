@@ -21,7 +21,10 @@ public class PostController {
 	private PostBO postBO;
 	
 	@GetMapping("/post-list-view")
-	public String postListView(HttpSession session, Model model) { 
+	public String postListView(
+			@RequestParam(value = "prevId", required = false) Integer prevIdParam,
+			@RequestParam(value = "nextId", required = false) Integer nextIdParam,
+			HttpSession session, Model model) { 
 		// (1) 로그인 여부 확인 -> parameter: session
 		Integer userId = (Integer)session.getAttribute("userId"); // 키명 일치해야하고, 받아오므로 UserRestController와 다르게 getAttribute, null일때 오류나지 않도록 Integer 타입으로 변환하기
 		if (userId == null) {
@@ -30,9 +33,27 @@ public class PostController {
 		} 
 		
 		// (2) db 조회 - 글 목록
-		List<Post> postList = postBO.getPostListByUserId(userId);
+		List<Post> postList = postBO.getPostListByUserId(userId, prevIdParam, nextIdParam);
+		int prevId = 0;
+		int nextId = 0;
+		if (postList.isEmpty() == false) { // 글목록이 비어있지 않을 때, 페이징 정보 setting
+			prevId = postList.get(0).getId(); // 첫번째칸 글 번호
+			nextId = postList.get(postList.size() - 1).getId(); // 마지막칸 글 번호
+			
+			//Q. 이전 방향의 끝인가? 그러면 0
+			if (postBO.isPrevLastPageByUserId(userId, prevId)) {
+				prevId = 0;
+			}
+			
+			// Q. 다음 방향의 끝인가? 그러면 0
+			if (postBO.isNextLastPageByUserId(userId, nextId)) {
+				nextId = 0;
+			}
+		}
 		
 		// (3) 모델에 담기 -> parameter: Model 추가
+		model.addAttribute("prevId", prevId);
+		model.addAttribute("nextId", nextId);
 		model.addAttribute("postList", postList);
 		
 		return "post/postList";

@@ -1,9 +1,8 @@
 package com.memo.post.bo;
 
+import java.util.Collections;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,10 +26,48 @@ public class PostBO {
 	@Autowired
 	private FileManagerService fileManagerService;
 	
-	// input: 로그인 된 사람의 userId
+	// 페이징 정보 필드(limit)
+	private static final int POST_MAX_SIZE = 3; 
+	
+	// input: 로그인 된 사람의 userId => 페이징 userId, prevId, nextId
 	// output: List<Post>
-	public List<Post> getPostListByUserId(int userId) {
-		return postMapper.selectPostListByUserId(userId);
+	public List<Post> getPostListByUserId(int userId, Integer prevId, Integer nextId) {
+		// [게시글 번호] 10 9 8 | 7 6 5 | 4 3 2  |1
+		/* if 내가 4 3 2 페이지에 있을 때 => 쿼리문 먼저
+		 * 1) 다음: 2보다 작은 3개 DESC
+		 * 2) 이전: 4보다 큰 3개 ASC => 5 6 7 => BO에서 reverse 7 6 5 
+		 * 3) 페이징X: 최신순 3개 DESC */
+		Integer standardId = null; // 기준 psotId
+		String directionn = null; // 방향
+		if (prevId != null) { // 2)이전
+			standardId = prevId;
+			directionn = "prev";
+			
+			// 5 6 7 => 7 6 5 로직 뒤집기
+			List<Post> postList = postMapper.selectPostListByUserId(userId, standardId, directionn, POST_MAX_SIZE); // 5 6 7 정방향으로 저장
+			Collections.reverse(postList); // 뒤집고 저장
+			return postList;
+			
+		} else if (nextId != null) { // 1)다음
+			standardId = nextId;
+			directionn = "next";
+		}
+		// 3)페이징 정보X, 1)다음
+		return postMapper.selectPostListByUserId(userId, standardId, directionn, POST_MAX_SIZE);
+	}
+	
+	// Q. 이전 페이지의 마지막인가?
+	// ★prevId와 테이블의 제일 큰 숫자와 같으면 현재 '이전'페이지는 끝페이지
+	public boolean isPrevLastPageByUserId(int userId, int prevId) {
+		int maxPostId = postMapper.selectPostIdByUserIdAsSort(userId, "DESC");
+		return maxPostId == prevId; 
+	}
+	
+	// Q. 다음 페이지의 마지막인가?
+	// ★nextId와 테이블의 제일 작은 숫자와 같으면 현재 '다음'페이지는 끝페이지
+	public boolean isNextLastPageByUserId(int userId, int nextId) {
+		int minPostId = postMapper.selectPostIdByUserIdAsSort(userId, "ASC");
+		return minPostId == nextId; 
 	}
 	
 	// ●input: userId, postId

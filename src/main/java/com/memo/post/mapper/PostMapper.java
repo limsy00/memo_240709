@@ -12,7 +12,17 @@ import com.memo.post.domain.Post;
 public interface PostMapper {
 	public List<Map<String, Object>> selectPostListTest();
 	
-	public List<Post> selectPostListByUserId(int userId);
+	public List<Post> selectPostListByUserId(
+			@Param("userId") int userId,
+			@Param("standardId") Integer standardId,
+			@Param("direction") String direction,
+			@Param("limit") int limit);
+	
+	// 여기서의 리턴타입은 postId(int) - 최댓값
+	public int selectPostIdByUserIdAsSort(
+			@Param("userId") int userId,
+			@Param("sort") String sort);
+	
 	
 	public void insertPost(
 			@Param("userId") int userId, 
