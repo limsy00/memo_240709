@@ -32,6 +32,8 @@ public class UserRestController { // API들만 모아논 class
 	public Map<String, Object> isDuplicatedId( // (1)작성 후, 여기에 breakpoint 걸고 확인 -> "이미 사용중인 ID입니다." 나오면 성공
 			@RequestParam("loginId") String loginId) {
 		
+		// 이슈 테스트
+		
 		// (2) db 조회
 		UserEntity user = userBO.getUserEntityByLoginId(loginId); // user가 null인지 아닌지에 따라 응답값이 달라짐 => if문으로 수정(1-1)
 		
